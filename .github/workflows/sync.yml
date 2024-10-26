@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Checkout Template Repository
         uses: actions/checkout@v4
-        with: 
+        with:
           path: main
 
       - name: Checkout App 1
@@ -27,30 +27,11 @@ jobs:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           path: app2
 
-      # - name: Copy Changes
-      #   run: |
-      #     # For App1
-      #     if [ -f "app1/.syncignore" ]; then
-      #       EXCLUDES1=$(cat app1/.syncignore | sed 's/^/--exclude /' | tr '\n' ' ')
-      #       rsync -av --exclude '.git' --exclude '.github' --exclude '.syncignore' $EXCLUDES1 main/ app1/ --exclude-from="app1/.syncignore"
-      #     else
-      #       rsync -av --exclude '.git' --exclude '.github' --exclude '.syncignore' main/ app1/
-      #     fi
-          
-      #     # For App2
-      #     if [ -f "app2/.syncignore" ]; then
-      #       EXCLUDES2=$(cat app2/.syncignore | sed 's/^/--exclude /' | tr '\n' ' ')
-      #       rsync -av --exclude '.git' --exclude '.github' --exclude '.syncignore' $EXCLUDES2 main/ app2/
-      #     else
-      #       rsync -av --exclude '.git' --exclude '.github' --exclude '.syncignore' main/ app2/
-      #     fi
-
-      - name: Copy Changess
+      - name: Copy Changes
         run: |
           # Define a function to handle syncing for a given app
           sync_app() {
             local app_dir=$1
-            tree --gitignore $app_dir 
             if [ -f "$app_dir/.syncignore" ]; then
               EXCLUDES=$(sed '/^$/d; s/^/--exclude /' "$app_dir/.syncignore" | tr '\n' ' ')
               rsync -av --exclude '.git' --exclude '.github' $EXCLUDES main/ "$app_dir/"
@@ -64,34 +45,139 @@ jobs:
 
           # Sync for App2
           sync_app "app2"
- 
 
       - name: Set up Git user
         run: |
           git config --global user.email "youssefahmedpvp@gmail.com"
           git config --global user.name "Youssef548"
 
-      - name: Commit and Push Changes to Apps
+      - name: Commit and Push Changes to Apps or Create PR
         env:
           GH_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
         run: |
           for app in app1 app2; do
             cd $GITHUB_WORKSPACE/$app
+            
+            # Ensure branch names are unique to avoid "branch already exists" errors
+            BRANCH_NAME="sync-changes-$(date +%Y%m%d%H%M%S)"
+            git checkout -b $BRANCH_NAME
+
             if [[ -n "$(git status --porcelain)" ]]; then
               git add .
               git commit -m "Sync from template: $(date +%Y-%m-%d)"
-              # Attempt to push the changes
-              if git push origin sync-changes; then
+              
+              # Attempt to push the changes to the branch
+              if git push origin $BRANCH_NAME; then
                 echo "Direct push successful for $app"
               else
-                echo "Conflict detected, creating PR for $app"
+                echo "Conflict detected or other issue, creating PR for $app"
                 gh pr create --title "Sync from template $(date +%Y-%m-%d)" \
                   --body "Automated sync of changes from template repository" \
-                  --head sync-changes \
+                  --head $BRANCH_NAME \
+                  --base main \
                   --repo Youssef548/$app
-
               fi
             else
               echo "No changes to sync for $app"
             fi
           done
+
+# name: Sync to Apps
+# on:
+#   push:
+#     branches:
+#       - main
+
+# jobs:
+#   sync:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout Template Repository
+#         uses: actions/checkout@v4
+#         with: 
+#           path: main
+
+#       - name: Checkout App 1
+#         uses: actions/checkout@v4
+#         with:
+#           repository: Youssef548/app1
+#           token: ${{ secrets.REPO_ACCESS_TOKEN }}
+#           path: app1
+
+#       - name: Checkout App 2
+#         uses: actions/checkout@v4
+#         with:
+#           repository: Youssef548/app2
+#           token: ${{ secrets.REPO_ACCESS_TOKEN }}
+#           path: app2
+
+#       # - name: Copy Changes
+#       #   run: |
+#       #     # For App1
+#       #     if [ -f "app1/.syncignore" ]; then
+#       #       EXCLUDES1=$(cat app1/.syncignore | sed 's/^/--exclude /' | tr '\n' ' ')
+#       #       rsync -av --exclude '.git' --exclude '.github' --exclude '.syncignore' $EXCLUDES1 main/ app1/ --exclude-from="app1/.syncignore"
+#       #     else
+#       #       rsync -av --exclude '.git' --exclude '.github' --exclude '.syncignore' main/ app1/
+#       #     fi
+          
+#       #     # For App2
+#       #     if [ -f "app2/.syncignore" ]; then
+#       #       EXCLUDES2=$(cat app2/.syncignore | sed 's/^/--exclude /' | tr '\n' ' ')
+#       #       rsync -av --exclude '.git' --exclude '.github' --exclude '.syncignore' $EXCLUDES2 main/ app2/
+#       #     else
+#       #       rsync -av --exclude '.git' --exclude '.github' --exclude '.syncignore' main/ app2/
+#       #     fi
+
+#       - name: Copy Changess
+#         run: |
+#           # Define a function to handle syncing for a given app
+#           sync_app() {
+#             local app_dir=$1
+#             tree --gitignore $app_dir 
+#             if [ -f "$app_dir/.syncignore" ]; then
+#               EXCLUDES=$(sed '/^$/d; s/^/--exclude /' "$app_dir/.syncignore" | tr '\n' ' ')
+#               rsync -av --exclude '.git' --exclude '.github' $EXCLUDES main/ "$app_dir/"
+#             else
+#               rsync -av --exclude '.git' --exclude '.github' main/ "$app_dir/"
+#             fi
+#           }
+
+#           # Sync for App1
+#           sync_app "app1"
+
+#           # Sync for App2
+#           sync_app "app2"
+ 
+
+#       - name: Set up Git user
+#         run: |
+#           git config --global user.email "youssefahmedpvp@gmail.com"
+#           git config --global user.name "Youssef548"
+
+#       - name: Commit and Push Changes to Apps
+#         env:
+#           GH_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
+#         run: |
+#           for app in app1 app2; do
+#             cd $GITHUB_WORKSPACE/$app
+#             if [[ -n "$(git status --porcelain)" ]]; then
+#               git add .
+#               git commit -m "Sync from template: $(date +%Y-%m-%d)"
+#               # Attempt to push the changes
+#               if git push origin sync-changes; then
+#                 echo "Direct push successful for $app"
+#               else
+#                 echo "Conflict detected, creating PR for $app"
+#                 gh pr create --title "Sync from template $(date +%Y-%m-%d)" \
+#                   --body "Automated sync of changes from template repository" \
+#                   --head sync-changes \
+#                   --repo Youssef548/$app
+
+#               fi
+#             else
+#               echo "No changes to sync for $app"
+#             fi
+#           done
+
+

@@ -34,7 +34,6 @@ jobs:
         run: |
           tree --gitignore
 
-
       - name: Copy Changes
         run: |
           cp -R main/ app1/
@@ -50,6 +49,7 @@ jobs:
           cd app1
           git add .
           git commit -m "Sync from main Vite React template"
+          git status
           git push origin main
         continue-on-error: true
 

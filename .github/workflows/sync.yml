@@ -36,8 +36,8 @@ jobs:
 
       - name: Copy Changes
         run: |
-          cp -R main app1/
-          cp -R main app2/
+          cp -R main/ app1/
+          cp -R main/ app2/
 
       - name: Commit and Push Changes to App 1
         run: |

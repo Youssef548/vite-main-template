@@ -78,7 +78,16 @@ jobs:
             if [[ -n "$(git status --porcelain)" ]]; then
               git add .
               git commit -m "Sync from template: $(date +%Y-%m-%d)"
-              git push origin main || echo "Failed to push to $app"
+              # Attempt to push the changes
+              if git push origin sync-changes; then
+                echo "Direct push successful for $app"
+              else
+                echo "Conflict detected, creating PR for $app"
+                gh pr create --title "Sync from template $(date +%Y-%m-%d)" \
+                  --body "Automated sync of changes from template repository" \
+                  --head sync-changes \
+                  --repo Youssef548/$app
+              fi
             else
               echo "No changes to sync for $app"
             fi

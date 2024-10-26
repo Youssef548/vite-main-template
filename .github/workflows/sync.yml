@@ -32,7 +32,8 @@ jobs:
 
       - name: list files
         run: |
-          ls
+          tree --gitignore
+
 
       - name: Copy Changes
         run: |
@@ -41,8 +42,8 @@ jobs:
 
       - name: Set up Git user
         run: |
-            git config --global user.email "your-email@example.com"
-            git config --global user.name "Your Name"
+            git config --global user.email "youssefahmedpvp@gmail.com"
+            git config --global user.name "Youssef548"
 
       - name: Commit and Push Changes to App 1
         run: |

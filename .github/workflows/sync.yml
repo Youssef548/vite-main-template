@@ -36,7 +36,7 @@ jobs:
 
       - name: Copy Changes
         run: |
-          cp -R main/ app1/
+          rsync -av --exclude '.git' main/ app1/
           cp -R main/ app2/
 
       - name: Set up Git user

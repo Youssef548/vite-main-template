@@ -13,15 +13,12 @@ jobs:
         with: 
           path: main
 
-
       - name: Sync to App 1
         uses: actions/checkout@v2
         with:
           repository: Youssef548/app1
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           path: app1
-
-          
 
       - name: Sync to App 2
         uses: actions/checkout@v2
@@ -30,33 +27,63 @@ jobs:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           path: app2
 
-      - name: list files
+      - name: List files
         run: |
           tree --gitignore
 
       - name: Copy Changes
         run: |
           rsync -av --exclude '.git' main/ app1/
-          cp -R main/ app2/
+          rsync -av --exclude '.git' main/ app2/
 
       - name: Set up Git user
         run: |
             git config --global user.email "youssefahmedpvp@gmail.com"
             git config --global user.name "Youssef548"
 
+      - name: Check for conflicts in App 1
+        run: |
+          cd app1
+          git fetch origin
+          if git diff --quiet origin/main; then
+            echo "No conflicts in App 1, safe to push."
+          else
+            echo "Conflicts detected in App 1, creating a pull request."
+            git checkout -b sync-branch
+            git add .
+            git commit -m "Sync changes from main repository on $(date +'%Y-%m-%d %H:%M:%S')"
+            git push origin sync-branch
+            gh pr create --title "Sync changes from main repository" --body "Automated sync PR for App 1" --base main --head sync-branch
+            exit 1  # Exit with error to indicate a PR was created
+          fi
+
       - name: Commit and Push Changes to App 1
         run: |
           cd app1
           git add .
-          git commit -m "Sync from main Vite React template"
-          git status
+          git commit -m "Sync from main Vite React template on $(date +'%Y-%m-%d %H:%M:%S')"
           git push origin main
-        continue-on-error: true
+
+      - name: Check for conflicts in App 2
+        run: |
+          cd app2
+          git fetch origin
+          if git diff --quiet origin/main; then
+            echo "No conflicts in App 2, safe to push."
+          else
+            echo "Conflicts detected in App 2, creating a pull request."
+            git checkout -b sync-branch
+            git add .
+            git commit -m "Sync changes from main repository on $(date +'%Y-%m-%d %H:%M:%S')"
+            git push origin sync-branch
+            gh pr create --title "Sync changes from main repository" --body "Automated sync PR for App 2" --base main --head sync-branch
+            exit 1  # Exit with error to indicate a PR was created
+          fi
 
       - name: Commit and Push Changes to App 2
         run: |
           cd app2
           git add .
-          git commit -m "Sync from main Vite React template"
+          git commit -m "Sync from main Vite React template on $(date +'%Y-%m-%d %H:%M:%S')"
           git push origin main
         continue-on-error: true

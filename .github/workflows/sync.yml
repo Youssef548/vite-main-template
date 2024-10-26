@@ -1,0 +1,47 @@
+name: Sync to Apps
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Template Repository
+        uses: actions/checkout@v2
+
+      - name: Sync to App 1
+        uses: actions/checkout@v2
+        with:
+          repository: https://github.com/Youssef548/app1.git
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: app1
+
+      - name: Sync to App 2
+        uses: actions/checkout@v2
+        with:
+          repository: https://github.com/Youssef548/app2.git
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: app2
+
+      - name: Copy Changes
+        run: |
+          cp -R * app1/
+          cp -R * app2/
+
+      - name: Commit and Push Changes to App 1
+        run: |
+          cd app1
+          git add .
+          git commit -m "Sync from main Vite React template"
+          git push origin main
+        continue-on-error: true
+
+      - name: Commit and Push Changes to App 2
+        run: |
+          cd app2
+          git add .
+          git commit -m "Sync from main Vite React template"
+          git push origin main
+        continue-on-error: true

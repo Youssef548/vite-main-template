@@ -9,99 +9,46 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Template Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with: 
           path: main
 
-      - name: Sync to App 1
-        uses: actions/checkout@v2
+      - name: Checkout App 1
+        uses: actions/checkout@v4
         with:
           repository: Youssef548/app1
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           path: app1
 
-      - name: Sync to App 2
-        uses: actions/checkout@v2
+      - name: Checkout App 2
+        uses: actions/checkout@v4
         with:
           repository: Youssef548/app2
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           path: app2
 
       - name: List files
-        run: |
-          tree --gitignore
+        run: tree --gitignore
 
       - name: Copy Changes
         run: |
-          rsync -av --exclude '.git' main/ app1/
-          rsync -av --exclude '.git' main/ app2/
+          rsync -av --exclude '.git' --exclude '.github' main/ app1/
+          rsync -av --exclude '.git' --exclude '.github' main/ app2/
 
       - name: Set up Git user
         run: |
-            git config --global user.email "youssefahmedpvp@gmail.com"
-            git config --global user.name "Youssef548"
+          git config --global user.email "youssefahmedpvp@gmail.com"
+          git config --global user.name "Youssef548"
 
-      - name: Pull Changes Before Pushing to App 1
+      - name: Commit and Push Changes to Apps
         run: |
-          cd app1
-          git pull origin sync-branch --rebase || echo "No changes to pull"
-          git add .
-          git commit -m "Sync from main Vite React template" || echo "No changes to commit"
-          git push origin sync-branch
-
-      - name: Pull Changes Before Pushing to App 2
-        run: |
-          cd app2
-          git pull origin sync-branch --rebase || echo "No changes to pull"
-          git add .
-          git commit -m "Sync from main Vite React template" || echo "No changes to commit"
-          git push origin sync-branch
-
-      - name: Check for conflicts in App 1
-        run: |
-          cd app1
-          git fetch origin
-          if git diff --quiet origin/sync-branch; then
-            echo "No conflicts in App 1, safe to push."
-          else
-            echo "Conflicts detected in App 1, creating a pull request."
-            git add .
-            git commit -m "Sync changes from main repository on $(date +'%Y-%m-%d %H:%M:%S')"
-            git push origin sync-branch
-            gh pr create --title "Sync changes from main repository" --body "Automated sync PR for App 1" --base main --head sync-branch
-            exit 1  # Exit with error to indicate a PR was created
-          fi
-
-      - name: Commit and Push Changes to App 2
-        run: |
-          cd app1
-          git add .
-          git commit -m "Sync from main Vite React template on $(date +'%Y-%m-%d %H:%M:%S')"
-          git push origin main
-        continue-on-error: true
-
-      
-      - name: Check for conflicts in App 2
-        run: |
-          cd app2
-          git fetch origin
-          if git diff --quiet origin/sync-branch; then
-            echo "No conflicts in App 2, safe to push."
-          else
-            echo "Conflicts detected in App 2, creating a pull request."
-            git add .
-            git commit -m "Sync changes from main repository on $(date +'%Y-%m-%d %H:%M:%S')"
-            git push origin sync-branch
-            gh pr create --title "Sync changes from main repository" --body "Automated sync PR for App 2" --base main --head sync-branch
-            exit 1  # Exit with error to indicate a PR was created
-          fi
-
-      
-
-      - name: Commit and Push Changes to App 2
-        run: |
-          cd app2
-          git add .
-          git commit -m "Sync from main Vite React template on $(date +'%Y-%m-%d %H:%M:%S')"
-          git push origin main
-        continue-on-error: true
+          for app in app1 app2; do
+            cd $GITHUB_WORKSPACE/$app
+            if [[ -n "$(git status --porcelain)" ]]; then
+              git add .
+              git commit -m "Sync from template: $(date +%Y-%m-%d)"
+              git push origin main || echo "Failed to push to $app"
+            else
+              echo "No changes to sync for $app"
+            fi
+          done

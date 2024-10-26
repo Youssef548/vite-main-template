@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: Youssef548/app1
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
           path: app1
 
           
@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: Youssef548/app2
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
           path: app2
 
       - name: list files

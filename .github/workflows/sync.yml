@@ -27,13 +27,23 @@ jobs:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           path: app2
 
-      - name: List files
-        run: tree --gitignore
-
       - name: Copy Changes
         run: |
-          rsync -av --exclude '.git' --exclude '.github' main/ app1/
-          rsync -av --exclude '.git' --exclude '.github' main/ app2/
+          # For App1
+          if [ -f "app1/.syncignore" ]; then
+            EXCLUDES1=$(cat app1/.syncignore | sed 's/^/--exclude /' | tr '\n' ' ')
+            rsync -av --exclude '.git' --exclude '.github' --exclude '.syncignore' $EXCLUDES1 main/ app1/
+          else
+            rsync -av --exclude '.git' --exclude '.github' --exclude '.syncignore' main/ app1/
+          fi
+          
+          # For App2
+          if [ -f "app2/.syncignore" ]; then
+            EXCLUDES2=$(cat app2/.syncignore | sed 's/^/--exclude /' | tr '\n' ' ')
+            rsync -av --exclude '.git' --exclude '.github' --exclude '.syncignore' $EXCLUDES2 main/ app2/
+          else
+            rsync -av --exclude '.git' --exclude '.github' --exclude '.syncignore' main/ app2/
+          fi
 
       - name: Set up Git user
         run: |

@@ -41,15 +41,30 @@ jobs:
             git config --global user.email "youssefahmedpvp@gmail.com"
             git config --global user.name "Youssef548"
 
+      - name: Pull Changes Before Pushing to App 1
+        run: |
+          cd app1
+          git pull origin sync-branch --rebase || echo "No changes to pull"
+          git add .
+          git commit -m "Sync from main Vite React template" || echo "No changes to commit"
+          git push origin sync-branch
+
+      - name: Pull Changes Before Pushing to App 2
+        run: |
+          cd app2
+          git pull origin sync-branch --rebase || echo "No changes to pull"
+          git add .
+          git commit -m "Sync from main Vite React template" || echo "No changes to commit"
+          git push origin sync-branch
+
       - name: Check for conflicts in App 1
         run: |
           cd app1
           git fetch origin
-          if git diff --quiet origin/main; then
+          if git diff --quiet origin/sync-branch; then
             echo "No conflicts in App 1, safe to push."
           else
             echo "Conflicts detected in App 1, creating a pull request."
-            git checkout -b sync-branch
             git add .
             git commit -m "Sync changes from main repository on $(date +'%Y-%m-%d %H:%M:%S')"
             git push origin sync-branch
@@ -57,28 +72,31 @@ jobs:
             exit 1  # Exit with error to indicate a PR was created
           fi
 
-      - name: Commit and Push Changes to App 1
+      - name: Commit and Push Changes to App 2
         run: |
           cd app1
           git add .
           git commit -m "Sync from main Vite React template on $(date +'%Y-%m-%d %H:%M:%S')"
           git push origin main
+        continue-on-error: true
 
+      
       - name: Check for conflicts in App 2
         run: |
           cd app2
           git fetch origin
-          if git diff --quiet origin/main; then
+          if git diff --quiet origin/sync-branch; then
             echo "No conflicts in App 2, safe to push."
           else
             echo "Conflicts detected in App 2, creating a pull request."
-            git checkout -b sync-branch
             git add .
             git commit -m "Sync changes from main repository on $(date +'%Y-%m-%d %H:%M:%S')"
             git push origin sync-branch
             gh pr create --title "Sync changes from main repository" --body "Automated sync PR for App 2" --base main --head sync-branch
             exit 1  # Exit with error to indicate a PR was created
           fi
+
+      
 
       - name: Commit and Push Changes to App 2
         run: |

@@ -27,26 +27,49 @@ jobs:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           path: app2
 
-      - name: Copy Changes
-        run: |
-          # For App1
-          if [ -f "app1/.syncignore" ]; then
-            EXCLUDES1=$(cat app1/.syncignore | sed 's/^/--exclude /' | tr '\n' ' ')
-            echo "=====================================================================================\n"
-            echo $EXCLUDES1
-            echo "=====================================================================================\n"
-            rsync -av --exclude '.git' --exclude '.github' --exclude '.syncignore' $EXCLUDES1 main/ app1/ --exclude-from="app1/.syncignore"
-          else
-            rsync -av --exclude '.git' --exclude '.github' --exclude '.syncignore' main/ app1/
-          fi
+      # - name: Copy Changes
+      #   run: |
+      #     # For App1
+      #     if [ -f "app1/.syncignore" ]; then
+      #       EXCLUDES1=$(cat app1/.syncignore | sed 's/^/--exclude /' | tr '\n' ' ')
+      #       echo "=====================================================================================\n"
+      #       echo $EXCLUDES1
+      #       echo "=====================================================================================\n"
+      #       rsync -av --exclude '.git' --exclude '.github' --exclude '.syncignore' $EXCLUDES1 main/ app1/ --exclude-from="app1/.syncignore"
+      #     else
+      #       rsync -av --exclude '.git' --exclude '.github' --exclude '.syncignore' main/ app1/
+      #     fi
           
-          # For App2
-          if [ -f "app2/.syncignore" ]; then
-            EXCLUDES2=$(cat app2/.syncignore | sed 's/^/--exclude /' | tr '\n' ' ')
-            rsync -av --exclude '.git' --exclude '.github' --exclude '.syncignore' $EXCLUDES2 main/ app2/
-          else
-            rsync -av --exclude '.git' --exclude '.github' --exclude '.syncignore' main/ app2/
-          fi
+      #     # For App2
+      #     if [ -f "app2/.syncignore" ]; then
+      #       EXCLUDES2=$(cat app2/.syncignore | sed 's/^/--exclude /' | tr '\n' ' ')
+      #       rsync -av --exclude '.git' --exclude '.github' --exclude '.syncignore' $EXCLUDES2 main/ app2/
+      #     else
+      #       rsync -av --exclude '.git' --exclude '.github' --exclude '.syncignore' main/ app2/
+      #     fi
+
+      - name: Copy Changess
+        run: |
+          # Define a function to handle syncing for a given app
+          sync_app() {
+            local app_dir=$1
+            if [ -f "$app_dir/.syncignore" ]; then
+              EXCLUDES=$(sed 's/^/--exclude /' "$app_dir/.syncignore" | tr '\n' ' ')
+              echo "==========================================================="
+              echo $EXCLUDES
+              echo "==========================================================="
+              rsync -av --exclude '.git' --exclude '.github' $EXCLUDES main/ "$app_dir/"
+            else
+              rsync -av --exclude '.git' --exclude '.github' main/ "$app_dir/"
+            fi
+          }
+
+          # Sync for App1
+          sync_app "app1"
+
+          # Sync for App2
+          sync_app "app2"
+ 
 
       - name: Set up Git user
         run: |

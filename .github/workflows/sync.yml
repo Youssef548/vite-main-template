@@ -11,7 +11,7 @@ jobs:
       - name: Checkout Template Repository
         uses: actions/checkout@v2
         with: 
-          path: /main
+          path: main
 
 
       - name: Sync to App 1
@@ -19,7 +19,7 @@ jobs:
         with:
           repository: Youssef548/app1
           token: ${{ secrets.GITHUB_TOKEN }}
-          path: /app1
+          path: app1
 
           
 
@@ -28,7 +28,7 @@ jobs:
         with:
           repository: Youssef548/app2
           token: ${{ secrets.GITHUB_TOKEN }}
-          path: /app2
+          path: app2
 
       - name: list files
         run: |
@@ -36,12 +36,17 @@ jobs:
 
       - name: Copy Changes
         run: |
-          cp -R /main/ /app1/
-          cp -R /main/ /app2/
+          cp -R main/ app1/
+          cp -R main/ app2/
+
+      - name: Set up Git user
+        run: |
+            git config --global user.email "your-email@example.com"
+            git config --global user.name "Your Name"
 
       - name: Commit and Push Changes to App 1
         run: |
-          cd /app1
+          cd app1
           git add .
           git commit -m "Sync from main Vite React template"
           git push origin main
@@ -49,7 +54,7 @@ jobs:
 
       - name: Commit and Push Changes to App 2
         run: |
-          cd /app2
+          cd app2
           git add .
           git commit -m "Sync from main Vite React template"
           git push origin main

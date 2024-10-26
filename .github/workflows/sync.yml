@@ -53,6 +53,7 @@ jobs:
           # Define a function to handle syncing for a given app
           sync_app() {
             local app_dir=$1
+            cat $app_dir/.syncignore 
             if [ -f "$app_dir/.syncignore" ]; then
               EXCLUDES=$(sed 's/^/--exclude /' "$app_dir/.syncignore" | tr '\n' ' ')
               echo "==========================================================="

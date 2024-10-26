@@ -53,9 +53,6 @@ jobs:
             tree --gitignore $app_dir 
             if [ -f "$app_dir/.syncignore" ]; then
               EXCLUDES=$(sed '/^$/d; s/^/--exclude /' "$app_dir/.syncignore" | tr '\n' ' ')
-              echo "==========================================================="
-              echo $EXCLUDES
-              echo "==========================================================="
               rsync -av --exclude '.git' --exclude '.github' $EXCLUDES main/ "$app_dir/"
             else
               rsync -av --exclude '.git' --exclude '.github' main/ "$app_dir/"

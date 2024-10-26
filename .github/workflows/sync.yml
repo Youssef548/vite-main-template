@@ -14,14 +14,14 @@ jobs:
       - name: Sync to App 1
         uses: actions/checkout@v2
         with:
-          repository: https://github.com/Youssef548/app1.git
+          repository: https://github.com/Youssef548/app1
           token: ${{ secrets.GITHUB_TOKEN }}
           path: app1
 
       - name: Sync to App 2
         uses: actions/checkout@v2
         with:
-          repository: https://github.com/Youssef548/app2.git
+          repository: https://github.com/Youssef548/app2
           token: ${{ secrets.GITHUB_TOKEN }}
           path: app2
 

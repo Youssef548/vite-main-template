@@ -19,6 +19,8 @@ jobs:
           repository: Youssef548/app1
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           path: app1
+        env:
+          ACTIONS_STEP_DEBUG: true  # Enable debug logging
 
       - name: Checkout App 2
         uses: actions/checkout@v4

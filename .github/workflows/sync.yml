@@ -16,18 +16,12 @@ jobs:
       - name: Checkout App 1
         uses: actions/checkout@v4
         with:
-          repository: Youssef548/app1
+          repository: Nativecode-Co/spaceLight
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           path: app1
         env:
           ACTIONS_STEP_DEBUG: true  # Enable debug logging
 
-      - name: Checkout App 2
-        uses: actions/checkout@v4
-        with:
-          repository: Youssef548/app2
-          token: ${{ secrets.REPO_ACCESS_TOKEN }}
-          path: app2
 
       - name: Copy Changes
         run: |
@@ -45,8 +39,6 @@ jobs:
           # Sync for App1
           sync_app "app1"
 
-          # Sync for App2
-          sync_app "app2"
 
       - name: Set up Git user
         run: |
@@ -57,7 +49,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
         run: |
-          for app in app1 app2; do
+          for app in app1; do
             cd $GITHUB_WORKSPACE/$app
             
             # Check for changes and attempt a direct push
